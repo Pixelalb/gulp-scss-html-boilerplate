@@ -1,0 +1,257 @@
+/*----------  MQ Breakpoints (by Zurb)  ----------*/
+
+
+$breakpoints: (
+  small: 0,
+  medium: 640px,
+  large: 1024px,
+  xlarge: 1200px,
+  xxlarge: 1440px,
+) !default;
+
+
+$print-breakpoint: large !default;
+
+$-zf-zero-breakpoint: small !default;
+
+$-zf-breakpoints-keys: map-to-list($breakpoints, 'keys');
+
+@if nth(map-values($breakpoints), 1) != 0 {
+  @error 'The first key in the $breakpoints map must have a value of "0".';
+}
+@else {
+  $-zf-zero-breakpoint: nth(map-keys($breakpoints), 1);
+}
+
+$breakpoint-classes: (small medium large) !default;
+
+@function breakpoint($val: $-zf-zero-breakpoint) {
+  $bp: nth($val, 1);
+  $bp-max: 0;
+  $dir: if(length($val) > 1, nth($val, 2), up);
+  $str: '';
+  $named: false;
+
+  @if $bp == 'landscape' or $bp == 'portrait' {
+    @return '(orientation: #{$bp})';
+  }
+  @else if $bp == 'retina' {
+    @return '(-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi)';
+  }
+
+  @if type-of($bp) == 'string' {
+    @if map-has-key($breakpoints, $bp) {
+      @if $dir == 'only' or $dir == 'down' {
+        $bp-max: -zf-map-next($breakpoints, $bp);
+      }
+
+      $bp: map-get($breakpoints, $bp);
+      $named: true;
+    }
+    @else {
+      $bp: 0;
+      @warn 'breakpoint(): "#{$val}" is not defined in your $breakpoints setting.';
+    }
+  }
+
+
+  @if $bp > 0 or $dir == 'only' or $dir == 'down' {
+    @if $dir == 'only' {
+      @if $named == true {
+        @if $bp > 0 {
+          $str: $str + '(min-width: #{$bp})';
+
+          @if $bp-max != null {
+            $str: $str + ' and ';
+          }
+        }
+
+        @if $bp-max != null {
+          $str: $str + '(max-width: #{$bp-max})';
+        }
+      }
+      @else {
+        @warn 'breakpoint(): Only named media queries can have an `only` range.';
+      }
+    }
+
+    @else if $dir == 'down' {
+      $max: if($named, $bp-max, $bp);
+
+      @if $named or $bp > 0em {
+        @if $max != null {
+          $str: $str + '(max-width: #{$max})';
+        }
+      }
+    }
+
+    @else if $bp > 0 {
+      $str: $str + '(min-width: #{$bp})';
+    }
+  }
+
+  @return $str;
+}
+
+@mixin breakpoint($values...) {
+  @for $i from 1 through length($values) {
+    $value: nth($values, $i);
+    $str: breakpoint($value);
+    $bp: index($-zf-breakpoints-keys, $value);
+    $pbp: index($-zf-breakpoints-keys, $print-breakpoint);
+
+    $old-zf-size: null;
+
+    @if global-variable-exists(-zf-size) {
+      $old-zf-size: $-zf-size;
+    }
+    $-zf-size: nth($value, 1) !global; 
+
+    @if $str == '' {
+      @content;
+    }
+
+    @else {
+      @if $bp != null and $bp <= $pbp {
+        @media print, screen and #{$str} {
+          @content;
+        }
+      }
+      @else {
+        @media screen and #{$str} {
+          @content;
+        }
+      }
+    }
+
+    $-zf-size: $old-zf-size !global;
+  }
+}
+
+
+@function -zf-map-next($map, $key) {
+
+  $values: map-keys($map);
+
+  $i: 0;
+
+  @if (map-has-key($map, $key)) {
+    $i: index($values, $key) + 1;
+  }
+
+  @if ($i > length($map) or $i == 0) {
+    @return null;
+  }
+  @else {
+    @return map-get($map, nth($values, $i));
+  }
+
+}
+
+
+@function -zf-breakpoints-less-than($key) {
+  $list: ();
+  $found_key: false;
+
+  @each $name in $-zf-breakpoints-keys {
+    @if ($name == $key) {
+      $found_key: true;
+    }
+    @if not $found_key {
+      $list: append($list, $name);
+    }
+  }
+  @return $list;
+}
+
+
+@function -zf-closest-named-breakpoint($breakpoint) {
+  $last: $-zf-zero-breakpoint;
+  $found: false;
+
+  $value: unitless-calc($breakpoint, 1px);
+  @each $key, $val in $breakpoints {
+    @if not $found {
+      @if unitless-calc($val) > $value {
+        $found: true;
+      } @else {
+        $last: $key;
+      }
+    }
+  }
+
+  @return $last;
+}
+
+@function -zf-get-bp-val($map, $value) {
+  @if type-of($map) == 'number' {
+    @return $map;
+  }
+
+
+  @if not map-has-key($breakpoints, $value) {
+    @if type-of($value) == 'number' {
+      $value: -zf-closest-named-breakpoint($value);
+    } @else {
+      @return null;
+    }
+  }
+  @else if map-has-key($map, $value) {
+    @return map-get($map, $value);
+  }
+  @else {
+    $anchor: null;
+    $found: false;
+
+    @each $key, $val in $breakpoints {
+      @if not $found {
+        @if map-has-key($map, $key) {
+          $anchor: $key;
+        }
+        @if $key == $value {
+          $found: true;
+        }
+      }
+    }
+
+    @return map-get($map, $anchor);
+  }
+}
+
+$small-up: '';
+$small-only: '';
+
+@if map-has-key($breakpoints, small) {
+  $small-up: screen;
+  $small-only: unquote('screen and #{breakpoint(small only)}');
+}
+
+$medium-up: '';
+$medium-only: '';
+
+@if map-has-key($breakpoints, medium) {
+  $medium-up: unquote('screen and #{breakpoint(medium)}');
+  $medium-only: unquote('screen and #{breakpoint(medium only)}');
+}
+
+$large-up: '';
+$large-only: '';
+
+@if map-has-key($breakpoints, large) {
+  $large-up: unquote('screen and #{breakpoint(large)}');
+  $large-only: unquote('screen and #{breakpoint(large only)}');
+}
+
+$xlarge-up: '';
+$xlarge-only: '';
+
+@if map-has-key($breakpoints, xlarge) {
+  $xlarge-up: unquote('screen and #{breakpoint(xlarge)}');
+  $xlarge-only: unquote('screen and #{breakpoint(xlarge only)}');
+}
+
+$xxlarge-up: '';
+
+@if map-has-key($breakpoints, xxlarge) {
+  $xxlarge-up: unquote('screen and #{breakpoint(xxlarge)}');
+}
