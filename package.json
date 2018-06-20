@@ -26,7 +26,7 @@
     "assets-loader": "^0.5.1",
     "browser-sync": "^2.18.13",
     "del": "^3.0.0",
-    "gulp": "^4.0.0",
+    "gulp": "^3.9.1",
     "gulp-cache": "^1.0.2",
     "gulp-cssnano": "^2.1.2",
     "gulp-if": "^2.0.2",
