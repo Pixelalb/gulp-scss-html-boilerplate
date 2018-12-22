@@ -8,7 +8,6 @@ var cssnano = require('gulp-cssnano');
 var imagemin = require('gulp-imagemin');
 var cache = require('gulp-cache');
 var del = require('del');
-var runSequence = require('run-sequence');
 var rsync = require('gulp-rsync');
 
 
@@ -36,12 +35,24 @@ gulp.task('sass', function() {
         }));
 })
 
-// Watchers
-gulp.task('watch', function() {
-    gulp.watch('app/scss/**/*.scss', ['sass']);
-    gulp.watch('app/*.html', browserSync.reload);
-    gulp.watch('app/js/**/*.js', browserSync.reload);
+
+gulp.task('html', function() {
+    return gulp.src('app/*.html')
+        .pipe(browserSync.reload({
+            stream: true
+        }));
 })
+
+
+gulp.task('javascript', function() {
+    return gulp.src('app/js/**/*.js')
+        .pipe(browserSync.reload({
+            stream: true
+        }));
+})
+
+
+
 
 
 // Optimization  
@@ -80,35 +91,44 @@ gulp.task('js-vendor', function() {
         .pipe(gulp.dest('dist/js/vendor'))
 })
 
-// Cleaning 
+
 gulp.task('clean', function() {
-    return del.sync('dist').then(function(cb) {
-        return cache.clearAll(cb);
-    });
+    return del(['dist/**/*', '!dist/images', '!dist/images/**/*']);
+});
+
+
+
+// Watchers
+gulp.task('watch', function() {
+    gulp.watch('app/scss/**/*.scss', gulp.series('sass'));
+    gulp.watch('app/*.html', gulp.series('html'));
+    gulp.watch('app/js/**/*.js',gulp.series('javascript'));
 })
 
-gulp.task('clean:dist', function() {
-    return del.sync(['dist/**/*', '!dist/images', '!dist/images/**/*']);
-});
+
+
+// Default task - dev 
+// -----
+
+gulp.task('default', 
+    gulp.parallel('watch', 'browserSync')
+);
 
 
 
 // Build 
 // -----
 
-gulp.task('default', function(callback) {
-    runSequence(['sass', 'browserSync'], 'watch',
-        callback
+gulp.task('build',
+    gulp.series(
+        'clean', 
+        'sass',
+        'copyapp', 
+        'js-vendor',
+        'useref',
+        'images'
     )
-})
-
-gulp.task('build', function(callback) {
-    runSequence(
-        'clean:dist',
-        'sass', ['useref', 'images', 'copyapp', 'js-vendor'],
-        callback
-    )
-})
+);
 
 
 
