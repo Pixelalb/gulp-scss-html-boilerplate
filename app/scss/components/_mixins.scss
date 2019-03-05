@@ -1,3 +1,37 @@
+/*----------  A bit easier with SVG backgrounds. Why not?  ----------*/
+
+@mixin svgbg($svg) {
+  background-repeat: no-repeat;
+  background-image: url('data:image/svg+xml;utf8,#{str-replace($svg, '#', '%23')}');
+}
+
+
+/*----------  Flex fallback for IE  ----------*/
+@mixin flex($column-widths)  {
+  display: flex;
+  justify-content: space-between;
+
+  @for $i from 1 through length($column-widths) {
+    & > :nth-child(#{$i}) {
+      width: nth($column-widths, $i);
+    }
+  }
+}
+
+
+/*----------  Because parsing!  ----------*/
+@function str-replace($string, $search, $replace: '') {
+  $index: str-index($string, $search);
+
+  @if $index {
+    @return str-slice($string, 1, $index - 1) + $replace + str-replace(str-slice($string, $index + str-length($search)), $search, $replace);
+  }
+
+  @return $string;
+}
+
+
+
 /*----------  MQ Breakpoints (by Zurb)  ----------*/
 
 
