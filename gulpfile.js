@@ -1,14 +1,15 @@
-var gulp = require('gulp');
-var sass = require('gulp-sass');
-var browserSync = require('browser-sync');
-var useref = require('gulp-useref');
-var uglify = require('gulp-uglify');
-var gulpIf = require('gulp-if');
-var cssnano = require('gulp-cssnano');
-var imagemin = require('gulp-imagemin');
-var cache = require('gulp-cache');
-var del = require('del');
-var rsync = require('gulp-rsync');
+let gulp = require('gulp');
+let sass = require('gulp-sass');
+let browserSync = require('browser-sync');
+let useref = require('gulp-useref');
+let uglify = require('gulp-uglify');
+let gulpIf = require('gulp-if');
+let cleanCSS = require('gulp-clean-css');
+let sourcemaps = require('gulp-sourcemaps');
+let imagemin = require('gulp-imagemin');
+let cache = require('gulp-cache');
+let del = require('del');
+let rsync = require('gulp-rsync');
 
 
 // Dev Tasks 
@@ -26,9 +27,11 @@ gulp.task('browserSync', function() {
 
 gulp.task('sass', function() {
     return gulp.src('app/scss/**/*.scss')
+        .pipe(sourcemaps.init())
         .pipe(sass({
             includePaths: require('node-normalize-scss').includePaths
         }).on('error', sass.logError))
+        .pipe(sourcemaps.write())
         .pipe(gulp.dest('app/css'))
         .pipe(browserSync.reload({
             stream: true
@@ -60,11 +63,10 @@ gulp.task('javascript', function() {
 
 // CSS and JavaScript 
 gulp.task('useref', function() {
-
     return gulp.src('app/*.html')
         .pipe(useref())
         .pipe(gulpIf('*.js', uglify()))
-        .pipe(gulpIf('*.css', cssnano()))
+        .pipe(gulpIf('*.css', cleanCSS()))
         .pipe(gulp.dest('dist'));
 });
 

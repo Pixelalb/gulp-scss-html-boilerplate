@@ -23,27 +23,23 @@
   },
   "homepage": "https://github.com/Pixelalb/gulp-scss-html-boilerplate",
   "devDependencies": {
-    "assets-loader": ">=0.5.1",
-    "browser-sync": ">=2.18.13",
+    "browser-sync": ">=2.26.7",
+    "cssnano": "^4.1.10",
     "del": ">=3.0.0",
-    "gulp": ">=3.9.1",
+    "gulp": ">=4.0.2",
     "gulp-cache": ">=1.0.2",
-    "gulp-cssnano": ">=2.1.2",
+    "gulp-clean-css": "^4.2.0",
     "gulp-if": ">=2.0.2",
     "gulp-imagemin": ">=4.1.0",
     "gulp-inject": ">=4.3.0",
     "gulp-postcss": ">=7.0.0",
     "gulp-rsync": ">=0.0.8",
     "gulp-sass": ">=4.0.1",
+    "gulp-sourcemaps": "^2.6.5",
     "gulp-svgmin": ">=1.2.4",
     "gulp-svgstore": ">=6.1.0",
     "gulp-uglify": ">=3.0.0",
     "gulp-useref": ">=3.1.2",
-    "node-normalize-scss": ">=8.0.0",
-    "preloader": ">=4.0.2",
-    "run-sequence": ">=2.2.0"
-  },
-  "dependencies": {
-    "pre-js": ">=0.1.2"
+    "node-normalize-scss": ">=8.0.0"
   }
 }
